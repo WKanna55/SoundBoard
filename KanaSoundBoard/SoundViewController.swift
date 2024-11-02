@@ -19,6 +19,11 @@ class SoundViewController: UIViewController {
     var grabarAudio: AVAudioRecorder?
     var reproducirAudio: AVAudioPlayer?
     var audioURL: URL?
+    @IBOutlet weak var lblContadorSegundos: UILabel!
+    var timer: Timer?
+    var elapsedTimeInSeconds = 0
+    var audioDuracion: String = "00:00"
+    
     
     @IBAction func grabarTapped(_ sender: Any) {
         if grabarAudio!.isRecording{
@@ -26,10 +31,21 @@ class SoundViewController: UIViewController {
             grabarButton.setTitle("GRABAR", for: .normal)
             reproducirButton.isEnabled = true
             agregarButton.isEnabled = true
+            // Detener el timer
+            timer?.invalidate()
+            timer = nil
+            //elapsedTimeInSeconds = 0
+            updateTimerLabel()
+            audioDuracion = lblContadorSegundos.text!
         } else {
             grabarAudio?.record()
             grabarButton.setTitle("DETENER", for: .normal)
             reproducirButton.isEnabled = false
+            // Iniciar el timer
+            elapsedTimeInSeconds = 0
+            updateTimerLabel()
+            timer = Timer.scheduledTimer(timeInterval: 1.0, target: self, selector: #selector(updateTimer), userInfo: nil, repeats: true)
+            
         }
     }
     @IBAction func reproducirTapped(_ sender: Any) {
@@ -43,6 +59,7 @@ class SoundViewController: UIViewController {
         let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
         let grabacion = Grabacion(context: context)
         grabacion.nombre = nombreTextField.text
+        grabacion.duracion = audioDuracion
         grabacion.audio = NSData(contentsOf: audioURL!)! as Data
         (UIApplication.shared.delegate as! AppDelegate).saveContext()
         navigationController?.popViewController(animated: true)
@@ -82,4 +99,16 @@ class SoundViewController: UIViewController {
             print(error)
         }
     }
+    // Función que se ejecuta cada segundo para actualizar el timer
+    @objc func updateTimer() {
+        elapsedTimeInSeconds += 1
+        updateTimerLabel()
+    }
+    // Función para actualizar el texto del label
+    func updateTimerLabel() {
+        let minutes = elapsedTimeInSeconds / 60
+        let seconds = elapsedTimeInSeconds % 60
+        lblContadorSegundos.text = String(format: "%02d:%02d", minutes, seconds)
+    }
+    
 }
