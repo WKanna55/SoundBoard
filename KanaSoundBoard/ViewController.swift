@@ -46,6 +46,7 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         let grabacion = grabaciones[indexPath.row]
         do {
             reproducirAudio = try AVAudioPlayer(data: grabacion.audio! as Data)
+            reproducirAudio?.volume = grabacion.volumen
             reproducirAudio?.play()
         }catch{}
         tablaGrabaciones.deselectRow(at: indexPath, animated: true)

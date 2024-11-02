@@ -19,10 +19,24 @@ class SoundViewController: UIViewController {
     var grabarAudio: AVAudioRecorder?
     var reproducirAudio: AVAudioPlayer?
     var audioURL: URL?
+    // tarea visualizar tiempo
     @IBOutlet weak var lblContadorSegundos: UILabel!
     var timer: Timer?
     var elapsedTimeInSeconds = 0
     var audioDuracion: String = "00:00"
+    
+    //tarea cambiar volumen
+    @IBOutlet weak var volumeSlider: UISlider!
+    @IBOutlet weak var lblVolumen: UILabel!
+    var volumenFinal: Float = 0.5
+    
+    @IBAction func volumeChanged(_ sender: UISlider) {
+        let value = sender.value
+        reproducirAudio?.volume = value
+        updateVolumeLabel(value: value)
+        volumenFinal = value
+    }
+    
     
     
     @IBAction func grabarTapped(_ sender: Any) {
@@ -49,8 +63,10 @@ class SoundViewController: UIViewController {
         }
     }
     @IBAction func reproducirTapped(_ sender: Any) {
+        
         do {
             try reproducirAudio = AVAudioPlayer(contentsOf: audioURL!)
+            reproducirAudio?.volume = volumenFinal
             reproducirAudio!.play()
             print("Reproduciendo")
         } catch {}
@@ -60,6 +76,7 @@ class SoundViewController: UIViewController {
         let grabacion = Grabacion(context: context)
         grabacion.nombre = nombreTextField.text
         grabacion.duracion = audioDuracion
+        grabacion.volumen = volumenFinal
         grabacion.audio = NSData(contentsOf: audioURL!)! as Data
         (UIApplication.shared.delegate as! AppDelegate).saveContext()
         navigationController?.popViewController(animated: true)
@@ -99,6 +116,8 @@ class SoundViewController: UIViewController {
             print(error)
         }
     }
+    
+    // Tarea visualizar duracion en segundos
     // Función que se ejecuta cada segundo para actualizar el timer
     @objc func updateTimer() {
         elapsedTimeInSeconds += 1
@@ -109,6 +128,30 @@ class SoundViewController: UIViewController {
         let minutes = elapsedTimeInSeconds / 60
         let seconds = elapsedTimeInSeconds % 60
         lblContadorSegundos.text = String(format: "%02d:%02d", minutes, seconds)
+    }
+    
+    // tarea volumen modificar
+    func setupVolumeControl() {
+        // Configurar el slider
+        volumeSlider.minimumValue = 0.0
+        volumeSlider.maximumValue = 1.0
+        volumeSlider.value = 0.5 // Valor inicial
+    
+        // Agregar imágenes para los extremos (opcional)
+        volumeSlider.minimumValueImage = UIImage(systemName: "speaker.fill")
+        volumeSlider.maximumValueImage = UIImage(systemName: "speaker.wave.3.fill")
+            
+        // Configurar el color del slider
+        volumeSlider.tintColor = .systemBlue
+            
+        // Actualizar el label inicial
+        updateVolumeLabel(value: volumeSlider.value)
+    }
+    
+    func updateVolumeLabel(value: Float) {
+        // Convertir el valor a porcentaje
+        let percentage = Int(value * 100)
+        lblVolumen.text = "\(percentage) %"
     }
     
 }
